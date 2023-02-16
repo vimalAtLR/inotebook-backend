@@ -32,9 +32,9 @@ router.post(
   "/addnote",
   fetchuser,
   [
-    body("title", "Enter a valid title").isLength({ min: 3 }),
+    body("title", "Enter a valid title").isLength({ min: 1 }),
     body("description", "Description must be atleast 5 characters").isLength({
-      min: 5,
+      min: 1,
     }),
   ],
   async (req, res) => {
@@ -48,19 +48,20 @@ router.post(
         return res.status(400).json({ errors: errors.array() });
       }
 
+
       // creating new note
-      const note = new Note({
+      const note = await Note.create({
         title,
         description,
-        tag,
+        tag: tag ? tag : "General",
         user: req.user.id,
       });
       const savedNote = await note.save();
 
       // return new note
-      return res.json(savedNote);
+      return res.status(200).json(savedNote);
     } catch (error) {
-      console.error(error.message);
+      console.log(error);
       return res.status(500).json({
         msg: "Internal Server Error",
         err: error,
@@ -129,12 +130,12 @@ router.delete("/deletenote/:id", fetchuser, async (req, res) => {
     // Find the note to be delete and delete it
     let note = await Note.findById(req.params.id);
     if (!note) {
-      return res.status(404).send("Not Found");
+      return res.status(404).json("Not Found");
     }
 
     // Allow deletion only if user owns this Note
     if (note.user.toString() !== req.user.id) {
-      return res.status(401).send("Not Allowed");
+      return res.status(401).json("Not Allowed");
     }
 
     note = await Note.findByIdAndDelete(req.params.id);
