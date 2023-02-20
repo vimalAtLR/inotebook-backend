@@ -23,6 +23,7 @@ router.post(
   ],
   async (req, res) => {
     try {
+      let success = false;
       // If there are errors, return Bad request and the errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -57,7 +58,8 @@ router.post(
       const authtoken = jwt.sign(data, JWT_SECRET);
 
       // res.json(user)
-      return res.json({ authtoken });
+      success = true;
+      return res.json({ success, authtoken });
     } catch (error) {
       console.error(error.message);
       return res.status(500).json({
@@ -96,7 +98,7 @@ router.post(
         success = false;
         return res
           .status(400)
-          .json({ error: "Please try to login with correct credentials" });
+          .json({ success: false, error: "Please try to login with correct credentials" });
       }
 
       // compare password
@@ -123,7 +125,7 @@ router.post(
       success = true;
       return res.json({ success, authtoken });
     } catch (error) {
-      console.error(error.message);
+      console.log(error);
       return res.status(500).json({
         msg: "Internal server error",
         err: error,
